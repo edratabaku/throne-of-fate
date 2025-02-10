@@ -1,0 +1,8 @@
+pygame
+diffusers
+transformers
+torch
+torchvision
+numpy
+matplotlib
+noise
