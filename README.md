@@ -30,3 +30,17 @@ Install diffusers (HuggingFace library) **globally**:
 ### Install requirements
 `pip install -r requirements.txt`
 
+### TASK LIST:
+- [ ] Limit the scope for the prompts to avoid hallucinating & define country (Priority 1) @Houssem
+- [ ] Work on code structure (Priority 1) @Juan
+- [ ] Generate prompts and options from the beginning to avoid waiting time every time a choice is selected @Edra
+- [ ] Test and maybe fix game end logic (set a total number of events) (Priority 1) @Edra
+- [ ] Docs (Priority 1) @Juan
+- [ ] Benchmarks (Priority 1) @Houssem
+- [ ] Maybe use a defined map to also shorten the time it takes for generating the map (Priority 2) @Edra
+- [ ] Improve user experience and graphics (Priority 2) @Edra
+- [ ] Generate random names for other countries and include them in the prompts (Priority 2) @Houssem
+- [ ] Test (Priority 2) @Houssem
+- [ ] Report (Priority 1) @Edra & @Juan
+- [ ] Video demo & sample results (Priority 1) @Juan
+
