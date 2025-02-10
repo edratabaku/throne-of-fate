@@ -43,4 +43,5 @@ Install diffusers (HuggingFace library) **globally**:
 - [ ] Test (Priority 2) @Houssem
 - [ ] Report (Priority 1) @Edra & @Juan
 - [ ] Video demo & sample results (Priority 1) @Juan
+- [ ] Measure timing to help evaluate the results
 
