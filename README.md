@@ -45,11 +45,12 @@ Install diffusers (HuggingFace library) **globally**:
 - [ ] Generate prompts and options from the beginning to avoid waiting time every time a choice is selected @Edra
 - [ ] Test and maybe fix game end logic (set a total number of events) (Priority 1) @Edra
 - [ ] Docs (Priority 1) @Juan
+- [ ] Improve user experience and generate prompts and options from the beginning to avoid waiting time every time a choice is selected @Edra
 - [ ] Benchmarks (Priority 1) @Houssem and @Juan
 - [ ] Maybe use a defined map to also shorten the time it takes for generating the map (Priority 2) @Edra
 - [ ] Improve user experience and graphics (Priority 2) @Edra
 - [ ] Generate random names for other countries and include them in the prompts (Priority 2) @Houssem
-- [ ] Test (Priority 2) @Houssem
+- [ ] Unit test (Priority 2) @Houssem
 - [ ] Report (Priority 1) @Edra & @Juan
 - [ ] Video demo & sample results (Priority 1) @Juan and @Edra
 - [ ] Measure timing to help evaluate the results (Priority 1) @Juan
