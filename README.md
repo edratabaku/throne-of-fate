@@ -42,7 +42,6 @@ Install diffusers (HuggingFace library) **globally**:
 - [ ] Limit the scope for the prompts to avoid hallucinating & define country (Priority 1) @Houssem
 - [ ] Work on code structure (Priority 1) @Juan
 - [ ] Use JSON output with the recommended approach @Juan
-- [ ] Generate prompts and options from the beginning to avoid waiting time every time a choice is selected @Edra
 - [ ] Test and maybe fix game end logic (set a total number of events) (Priority 1) @Edra
 - [ ] Docs (Priority 1) @Juan
 - [ ] Improve user experience and generate prompts and options from the beginning to avoid waiting time every time a choice is selected @Edra
