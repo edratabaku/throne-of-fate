@@ -1,0 +1,8 @@
+{
+    "scenario": "Rumors of revolt within the kingdom",
+    "options": [
+        {"text": "Suppress with force", "effects": {"economy": -5, "military": 2, "public_appeal": -1, "diplomacy": 0}},
+        {"text": "Address grievances diplomatically", "effects": {"economy": 3, "military": -2, "public_appeal": 0, "diplomacy": 1}},
+        {"text": "Ignore the revolt and hope for peace", "effects": {"economy": 0, "military": 0, "public_appeal": -3, "diplomacy": 5}}
+    ]
+}

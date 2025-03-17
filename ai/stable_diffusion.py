@@ -1,29 +1,31 @@
-'''
+"""
 Image generation using StableDiffusion
-'''
+"""
 
 from diffusers import StableDiffusionPipeline
 import torch
 from PIL import Image
 from config import STABLE_DIFFUSION_MODEL
 
-#Function to generate the character image based on description 
-def generate_character_image(description, output_file="assets/character.png"):
-    pipe = StableDiffusionPipeline.from_pretrained(STABLE_DIFFUSION_MODEL)
-    pipe.to("cuda" if torch.cuda.is_available() else "cpu")
+# Determine the appropriate device, CUDA for Nvidia GPUs, MPS for Apple M1 and CPU for others
+if torch.cuda.is_available():
+    device = "cuda"
+elif torch.backends.mps.is_available():
+    device = "mps"
+else:
+    device = "cpu"
 
+pipe = StableDiffusionPipeline.from_pretrained(
+    STABLE_DIFFUSION_MODEL, torch_dtype=torch.float32, variant="fp16"
+)
+pipe.to(device)
+if device == "mps":
+    # Recommended if your computer has < 64 GB of RAM
+    pipe.enable_attention_slicing()
+
+
+def generate_image(description, output_file):
     image = pipe(description).images[0]
     image.save(output_file)
-    print(f"Character image saved as {output_file}")
-    return output_file  # Return the image path
-
-#Function to generate the map image based on description
-def generate_map(description, output_file="assets/map.png"):
-    pipe = StableDiffusionPipeline.from_pretrained(STABLE_DIFFUSION_MODEL)
-    pipe.to("cuda" if torch.cuda.is_available() else "cpu")
-
-    image = pipe(description).images[0]
-    image.save(output_file)
-    
-    print(f"Map generated and saved at {output_file}")
-    return output_file  # Return the image path
+    print(f"Image saved as {output_file}")
+    return output_file

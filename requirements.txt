@@ -6,3 +6,6 @@ torchvision
 numpy
 matplotlib
 noise
+accelerate
+black
+ollama
