@@ -1,0 +1,33 @@
+# LaTeX intermediate files
+*.bcf
+*.run.xml
+*.aux
+*.bbl
+*.blg
+*.brf
+*.log
+*.nav
+*.out
+*.snm
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+
+.DS_Store
+
+# SyncTeX
+*.synctex.gz
+
+# PDF files
+*.pdf
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*.backup
+
+# Editor backup files
+*~
