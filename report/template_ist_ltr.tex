@@ -1,0 +1,486 @@
+% % % % % % % % % % % % % % % % % % % % % % % % % % %
+% OSINT PROJECT
+% November 2024
+% % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Document class
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[letterpaper,twocolumn,fleqn]{article} 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Packages
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{ist}
+\usepackage{amsmath}
+\usepackage{caption}
+\captionsetup[table]{skip=10pt} % Adjust the value as needed
+\usepackage{hyperref} % Add this line to your preamble
+
+% add other packages here
+
+\pagestyle{empty}                % no page numbers is default
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Title and Authors
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\title{The Role of Zero-Shot Classification in OSINT for Cybersecurity Threat Identification}
+
+\author{ 
+  Katerina Itopoulos\textsuperscript{1}, Juan Pablo Méndez\textsuperscript{1}, David Rodrigues\textsuperscript{1} \\
+  \textnormal{\textsuperscript{1}SRH University of Applied Sciences, Berlin, Germany}
+}
+
+\date{November 2024} % date has an empty field.
+
+% correct for bad hyphenation here
+\hyphenation{}
+\usepackage[backend=biber]{biblatex} 
+\addbibresource{references.bib}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Begin document
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+\maketitle 
+
+\thispagestyle{empty} % prevents the first page to be numbered
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Abstract
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{abstract}
+  Our research investigates the role of zero-shot classification as a method to identify cybersecurity threats using open-source datasets.
+  The dynamic nature of cybersecurity threats poses challenges against detection methods based on supervised machine learning models which rely on large, labelled datasets.
+  Datasets of this form and size may not be available for emerging attacks, and if are available, are costly and time consuming to obtain. 
+  Zero-shot learning is a machine learning method applied in scenarios where little or no labelled class instances exist. This learning technique utilizes alternative auxiliary information to learn the relationship between the input data and output classes. Instead of using labelled instances to perform inference and classification tasks, the model uses semantic descriptions, embeddings or knowledge graphs.
+  Therefore, the use of zero-shot classification and open-source cybersecurity datasets show potential to be an adaptable, resource and time-efficient alternative for cybersecurity threat identification systems for the curret dynamic environment of attacks. 
+  We implemented a zero-shot classifier to classify spam emails and tweets to investigate its potential role in cybersecurity threat identification. Our system comprised of the quantized version of the Mistral 12B generative large language model, semantic descriptions of the feature attributes and output classes and custom output formatting restricted to the defined classes using the Backus-Naur format. 
+  The classifier achieved an impressive accuracy of 92.03\% for the spam email filter task and a moderate accuracy of 57.07\% for the spam tweet detection task. The zero-shot classification model achieved a lower accuracy than supervised machine learning models trained in other studies for both classification tasks. 
+  The experiments conducted demonstrate the feasibility of using generative large language models as zero-shot classifiers for text-based cybersecurity threat classification tasks, where large labelled datasets of threats are not available and rapid development time and adaptability are priorities.
+\end{abstract}
+
+\vspace{0.75em} % Optional: Adds some vertical space
+\noindent
+\textbf{Keywords:} Cybersecurity Threat Identification, OSINT, Zero-Shot Classification, Large Language Models
+\vspace{1em} % Optional: Adds some vertical space
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Overall Document Guidelines: Head
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{1 Introduction}
+\label{intro}
+The occurence of malicious cyber attacks continue to increase in proportion with society's reliance on information technology(IT) and data-driven infrastructure \cite{jang-jaccardSurveyEmergingThreats2014,daveNewFrontierCybersecurity2023}.
+State-of-the art accuracy and efficiency of cybersecurity threat identification systems have become critical goals in this field of research, with many successful implementations achieved in the past with the use of supervised machine learning(ML) methods\cite{shaukatCyberThreatDetection2020,jainSpamDetectionSocial2018,ecolenationalesuperieuredesminesdeparisfranceInterpretableIdentificationCybersecurity2021,dionisioCyberthreatDetectionTwitter2019,chenPerformanceEvaluationMachine2015,al-yaseenRealtimeMultiagentSystem2017}.
+These models have shown impressive capabilites to classify cyber threats such as spam emails, messages and tweets\cite{shaukatCyberThreatDetection2020,dionisioCyberthreatDetectionTwitter2019,jainSpamDetectionSocial2018,chenPerformanceEvaluationMachine2015,chen6MillionSpam2015}, malware\cite{shaukatCyberThreatDetection2020} and to detect network intrusions\cite{al-yaseenRealtimeMultiagentSystem2017,vacasDetectingNetworkThreats2018,shaukatCyberThreatDetection2020}. 
+
+However, supervised learning methods require large and labelled datasets,reasonable amounts of computation resources and time to train\cite{wangSurveyZeroShotLearning2019}. Supervised classifiers are also only able to identify output classes represented in the training dataset\cite{wangSurveyZeroShotLearning2019}. These conditions pose challenges against supervised learning methods for scenarios where output classes have an evolving form\cite{wangSurveyZeroShotLearning2019}.
+
+The emergence of "zero day" attacks\cite{abriPerformanceMachineDeep2019} and the evolving form of previously known threats has created a challenging landscape for cybersecurity systems to remain feasible\cite{jang-jaccardSurveyEmergingThreats2014,daveNewFrontierCybersecurity2023}.
+The adaptability of these systems has become an additional priority and important consideration in order to maintain performance standards\cite{al-yaseenRealtimeMultiagentSystem2017,abriPerformanceMachineDeep2019,uddinDualTierAdaptiveOneClass2024}. 
+Cybersecurity systems solely relying on supervised ML methods are less adaptable to the dynamic nature of modern cybersecurity threats\cite{al-yaseenRealtimeMultiagentSystem2017,abriPerformanceMachineDeep2019,uddinDualTierAdaptiveOneClass2024}. 
+
+Open source intelligence(OSINT) serves an important role in advancing the field of cybersecurity threat identification systems through shared resources and knowledge as well as publically available data enabling systems to stay up-to-date with the evolving cyber threat environment\cite{pastor-galindoNotExploitedGoldmine2020,zhangMiningOpenSourceCyber2021,zhangMiningOpenSourceCyber2021}. 
+ML methods have been widely used to extract valuable information and insights from public cyber threat datasets, advancing the field of cybersecurity with the help of OSINT \cite{zhangMiningOpenSourceCyber2021,shaukatCyberThreatDetection2020,liSecurityOSIFAutomatic2018,kuehnThreatCrawlBERTbasedFocused2023,jainSpamDetectionSocial2018,gaoThreatKGAIPoweredSystem2024,ecolenationalesuperieuredesminesdeparisfranceInterpretableIdentificationCybersecurity2021,dionisioCyberthreatDetectionTwitter2019,chenPerformanceEvaluationMachine2015,chen6MillionSpam2015,al-yaseenRealtimeMultiagentSystem2017,abriPerformanceMachineDeep2019,abdullahCyberAttackFeaturesDetecting2018}.
+However, often publically available data is not labelled or structured in a way that can be analyzed and learnt efficiently by supervised learning methods\cite{chenZeroShotTextClassification2022}.  
+
+Alternative learning methods have emerged in the ML field due to the demand for more adaptable classifiers\cite{uddinDualTierAdaptiveOneClass2024}, for cases where large labelled datasets do not exist or the form of the output classes has an evolving nature\cite{wangSurveyZeroShotLearning2019}. 
+Zero-shot learning is a method where no labelled instances are used to train a model to learn the releationship between the input and output data\cite{wangSurveyZeroShotLearning2019,pushpTrainOnceTest2017}. Instead of labelled instances, auxiliary information about the output classes and their features related to the input data received are provided in the form of word or graph embeddings, semantic class and feature descriptions or knowledge graphs, which enable the learner to infere the relationship between input data and output classes/data\cite{wangSurveyZeroShotLearning2019,pushpTrainOnceTest2017}. 
+It is a transfer learning method, where domain knowledge can be transferred to the learner in various forms enabling it infere relationships between the input and output data without explicit training via labelled instances for this task\cite{wangSurveyZeroShotLearning2019,pushpTrainOnceTest2017}.
+
+The natural language processing and semantic inference capabilities of pretrained generative large language models (LLMs) make them ideal candidates for Zero-shot learning via semantic class and attribute descriptions or word embeddings\cite{puriZeroshotTextClassification2019}. LLMs can be provided with instructions in natural language to adapt to tasks such as classification without explicit training\cite{puriZeroshotTextClassification2019}. 
+
+Our research aims to uncover the potential role Zero-shot classifiers have in OSINT for cybersecurity threat identification in comparison to the capabilities supervised ML models have displayed. We implement a zero-shot classifier using the Mistral 12B generative LLM\cite{aiMistralNeMo2024} from hugging face and custom output formatting enforced by the Backus-Naur form (BNF) to perform cybersecurity threat identification using semantic inference and natural language processing. 
+
+Two open-source cyber threat datasets were used during the experiment, the 2015 Enron dataset which contains spam and regular emails and the 2014 Twitter Spam dataset, comprising of information related to regular and spam tweets and the user who posted them. 
+The zero-shot classifier's performance was measured using accuracy, precision and recall for the two classification tasks\cite{dengImprovedMethodConstruct2016}. 
+To investigate our research question we compared the implementation efforts, adaptability and performance results of our zero-shot classifier to previously published supervised models trained for the same cybersecurity threat classification tasks in \cite{shaukatCyberThreatDetection2020}. 
+
+The cybersecurity threats assessed in our research were limited to spam emails and tweets from open source datasets. The zero-shot classification method assessed in our research is a system comprised of a LLM, an engineered semantic attribute space and custom output formatting using the Backus-Naur form. 
+The quantized version of the Mistral 12B pretrained LLM was used and assessed due to limited GPU and RAM available in our implementation environment. 
+
+The experiment conducted can be seen as a contribution to the field of OSINT in cybersecurity threat identification. The performance results achieved during the two cyber threat detection tasks serve as a proof of concept of how zero-shot classification using an LLM can be used as an efficient and adaptable method for cybersecurity threat identification if combined with sufficient domain knowledge.
+
+\section{2 Literature Review}
+\label{literaturereview}
+
+Our research builds upon prior work done on cybersecurity threat identification, OSINT and the application of zero-shot classification. In the following section, key studies in these areas will be summarized that support and motivate our investigation of the role of zero-shot classification in OSINT for cybersecurity threat identification.
+
+\subsection{2.1 Cybersecurity Threat Identification}
+Cybersecurity threats are becoming increasingly prevalent in todays digital landscape making it essential for organisations to have access to accurate and up-to-date threat intelligence\cite{jang-jaccardSurveyEmergingThreats2014,daveNewFrontierCybersecurity2023}.
+Open-source threat intelligence feeds provide valuable information on emerging threats, attack methodology, enabling enhanced security in the "threat hunting" community\cite{cherqiEnhancingCyberThreat2023,zhangMiningOpenSourceCyber2021}. 
+
+As the cyber threat landscape becomes increasingly complex, increasing numbers of organizations are turning to cybersecurity threat intelligence systems to gain a comprehensive understanding of potential threats and for a means of protection against them\cite{jang-jaccardSurveyEmergingThreats2014,daveNewFrontierCybersecurity2023}. 
+However, the process of manually identifying these dangers can be costly and time-consuming for security specialists and not practical in real-time situations. 
+It is essential to have the capability to accurately identify and classify cyber threats, such as malware, data theft, and other malicious cyber events in a short time frame \cite{cherqiEnhancingCyberThreat2023,jang-jaccardSurveyEmergingThreats2014, daveNewFrontierCybersecurity2023}. 
+
+\subsection{2.2 Open Source Intelligence}
+OSINT is the process of extracting knowledge and insights from publically available information that can be used for a wide range of tasks such as inference, detection or analytics\cite{pastor-galindoNotExploitedGoldmine2020}.
+Due to the increasing amount and types of data generated and available on the internet as well as advancements in data processing capabilities, a wide range of use cases of OSINT have emerged \cite{pastor-galindoNotExploitedGoldmine2020}. 
+Recent advancements in artificial intelligence(AI) such as natural language processing and sentiment analysis have become popular techniques for extracting, analysing and infering knowledge efficiently from unstructured, open-source datasets\cite{pastor-galindoNotExploitedGoldmine2020,chenZeroShotTextClassification2022}.
+
+One of the main use cases of OSINT is its contribution towards cybersecurity research, systems and awareness\cite{pastor-galindoNotExploitedGoldmine2020,vacasDetectingNetworkThreats2018}. 
+OSINT has enabled a diverse variation of data and knowledge to be used to construct cybersecurity systems representative of real-time scenarios\cite{pastor-galindoNotExploitedGoldmine2020}. This additional knowledge has provided mutli-faceted context and insights into these scenarios needed to design effective defense mechanisms\cite{pastor-galindoNotExploitedGoldmine2020}.
+OSINT will serve as a valuable tool to advance cybersecurity research and maintain awareness of the continuously evolving form of cyber threats\cite{jang-jaccardSurveyEmergingThreats2014}.
+
+\subsection{2.3 Cybersecurity Threat Identification using Machine Learning and Artificial Intelligence}
+ML models such as Decision Trees, Random Forest, Naive Bayes, Support Vector Machines(SVMs), K-nearest Neighbour, Deep Belief Networks(DBNs), Convolutional Neural Netowrks(CNNs) and Artificial Neural Networks(ANNs) are widely used learning techniques to detect cyber threats\cite{shaukatCyberThreatDetection2020,jainSpamDetectionSocial2018,ecolenationalesuperieuredesminesdeparisfranceInterpretableIdentificationCybersecurity2021,dionisioCyberthreatDetectionTwitter2019,chenPerformanceEvaluationMachine2015,al-yaseenRealtimeMultiagentSystem2017}. 
+\cite{shaukatCyberThreatDetection2020} evaluates the performance of SVMs, DBNs and Decision Trees to identify spam tweets and emails, malware and intrusion and found that DBNs ahcieved the highest accuracy for these tasks. 
+
+The research done by \cite{dionisioCyberthreatDetectionTwitter2019} used CNNs to perform binary classification to identify whether a tweet contains security-related information or not.
+The research paper \cite{dionisioCyberthreatDetectionTwitter2019} also investigates the use of Bidirectional Long Short-Term Memory(BiLSTM) networks, which are usually used for named entity recognition, to extract relevant entities from the tweets for cybersecurity threat intelligence. BiLSTMs achieved a TPR score of 97\% and 92\% respectively\cite{dionisioCyberthreatDetectionTwitter2019}. 
+
+The model from \cite{gaoThreatKGAIPoweredSystem2024}, THREATKG, automates the scraping and collection of open-source cybersecurity threat intelligence reports and extracts high quality knowledge about various threats. The system continuously updates a knowledge graph with the knowledge it extracts, and has an overall precision score of 85\%\cite{gaoThreatKGAIPoweredSystem2024}. 
+
+The model "CySecBERT" designed in \cite{kuehnThreatCrawlBERTbasedFocused2023} is a fined tuned version of BERT specialized for the cybersecurity domain.
+It is used for generation of contextualized document embeddings to classify and rank web pages according to their relevance to cybersecurity topics and achieved a F1-score of 86\%\cite{kuehnThreatCrawlBERTbasedFocused2023}. 
+
+\cite{abriPerformanceMachineDeep2019} investigates the ability of supervised ML models to identify zero-day vulnerabilities. The Random Forest model achieves the highest accuracy of 99.51\% and outperformed more complex deep learning models for this task \cite{abriPerformanceMachineDeep2019}.
+None of the models achieved a 100\% prediction accuracy and the paper highlights the limitations these models may face when tested on real-world, emerging attacks due to their necessity for large amounts of representative training data \cite{abriPerformanceMachineDeep2019}. 
+
+The cyber threat identification system designed in \cite{al-yaseenRealtimeMultiagentSystem2017} proposes an adaptive architecture design to overcome challenges faced by traditional ML architectures. 
+A combination of a SVM and an Extreme Learning Machine (ELM) is used to classify normal and known attack behaviors \cite{al-yaseenRealtimeMultiagentSystem2017} . A standalone SVM is then used to learn the classified unknown attacks in real-time and incorporate this knowledge into the system without retraining of the entire system\cite{al-yaseenRealtimeMultiagentSystem2017}. 
+The system designed in \cite{al-yaseenRealtimeMultiagentSystem2017} received an overall accuracy of 95.86\%. The paper exhibits an innovate mechanism to increase the adaptability of traditional ML models to combat the dynamic cyber threat landscape\cite{al-yaseenRealtimeMultiagentSystem2017} . 
+
+There is a demand for updated versions of benchmark datasets to test the latest advancement in the field of ML for cyber threat detecion. The current benchmark datasets lack the diversity and representation of sophisticated, emerging attacks.
+
+\subsection{2.4 Zero Shot Classification}
+Zero-shot learning (ZSL) is a transfer learning method, where ML algorithms make use of auxiliary information to learn the relationship between unseen output classes and input data instead of being trained to perform a specific task using large, labelled datasets like supervised models require\cite{wangSurveyZeroShotLearning2019,zhangIntegratingSemanticKnowledge2019,pushpTrainOnceTest2017}.
+This auxiliary information can be of various forms such as semantic descriptions, word or graph embeddings and knowledge graphs and are easily adaptable for new output classes and tasks\cite{wangSurveyZeroShotLearning2019,pushpTrainOnceTest2017}. ZSL is an ideal method for cases where the output classes continuously evolve or where scarce amounts of labelled data exists, due to the concise form of auxiliary information used and the efficient and adaptable learning process\cite{wangSurveyZeroShotLearning2019,zhangIntegratingSemanticKnowledge2019,pushpTrainOnceTest2017}. 
+These characteristics position ZSL as a promising method to incorporate into cybersecurity systems as they can be easily adapted to identify and combat new and emerging cyber threats without large, labelled datasets \cite{zhangUnknownAttackDetection2020,zerhoudiImprovingIntrusionDetection2020,barrosMalwareSMELLZeroshotLearning2022,chenZeroShotTextClassification2022, wangSurveyZeroShotLearning2019}.
+ZSL also shows potential to be a suitable method for analysing volumes of open-source datasets from the internet, that are usually not structured or labelled, through the use of transferred domain knowledge in the form of semantic descriptions, embeddings or knowledge graphs\cite{chenZeroShotTextClassification2022,puriZeroshotTextClassification2019,pushpTrainOnceTest2017,wangSurveyZeroShotLearning2019,zhangIntegratingSemanticKnowledge2019}. 
+
+\cite{puriZeroshotTextClassification2019} demonstrated the suitability of pretrained generative LLMs, specifically GPT-2, for zero-shot text classification tasks. This can be done be done by providing instructions to the model for the classification task in the prompt and semantic descriptions of the output classes in terms of its defining attributes\cite{puriZeroshotTextClassification2019}. 
+The impressive natural language understanding and semantic analysis capabilties of the pretrained LLM allow it to be efficiently adapted to a wide range of classification tasks that it has not been specifically trained to perform\cite{puriZeroshotTextClassification2019,chenZeroShotTextClassification2022}.
+The research done by \cite{chenZeroShotTextClassification2022} also demonstrates the capabilites of the LLM, S-BERT, to perform zero-shot text classification on unstructured open-source social media datasets. The zero-shot classifier made use of knowledge graph embeddings, natural language processing and semantic inference to identify and cluster COVID-19 related social media data into seven categories achieving an improved performance in comparison to baseline models such as BART-NLI\cite{chenZeroShotTextClassification2022}.  
+
+Zero-shot learning has recently been successfully applied to cybersecurity threat identification, such as in \cite{zhangUnknownAttackDetection2020} where a zero-shot classifier is constructed using a sparse semantic autoencoder, semantic descriptions and word embeddings to adapt the model to identify known and unknown cyber attacks without training data. The ZSL method displayed impressive accuracy and detection capabilities of unknown cyber threats\cite{zhangUnknownAttackDetection2020}.
+The incorporation of zero-shot learning via graph embeddings in \cite{zerhoudiImprovingIntrusionDetection2020} was seen to increase the accuracy of an intrusion detection system through additional contextual knowledge to map the relationship between input and output data. 
+The Malware-SMELL zero-shot classifiction model implemented in \cite{barrosMalwareSMELLZeroshotLearning2022} achieved an impressive accuracy of 84\% for malware classification and superior performance in comparison to supervised methods for unknown, malicious malware detection. Their ZSL approach maps the relationship between output classes via the research teams novel similarity space named "S-Space"\cite{barrosMalwareSMELLZeroshotLearning2022} combined with a latent feature space. 
+
+The reviewed research highlights the potential use case of zero-shot classification to address the challenges and opportunities provided by OSINT and the dynamic cyber attack environment. 
+The literature highlights the efficiency and adaptability of zero-shot learning methods via word or graph embeddings, an engineered semantic space or knowledge graphs and their suitability for scenarios where large,labelled training datasets are not available yet.
+The research also demonstrates LLMs as ideal candidates for zero-shot text classification tasks due to their impressive natural language understanding and semantic inference capabilties.
+Zero-shot learning has been successfuly applied to the field of cybersecurity to improve the performance of classification systems, found especially useful for detecting novel attacks. 
+These findings demonstrate that further research is needed to investigate the role of zero-shot Classification in OSINT for cybersecurity threat identification. 
+
+\section{3 Methodology and Implementation}
+\label{method}
+
+\subsection{3.1 Zero Shot Classification with Semantic Inference}
+
+In this section, we describe the zero-shot learning approach using 
+a large language model(LLM), Mistral NeMo 7B, with class and attribute 
+descriptions to perform cybersecurity threat classification using
+semantic inference.
+
+\subsubsection{3.1.1 Model Selection}
+The Mistral NeMo 12B is a state-of-the-art LLM released in 2024, 
+with impressive inference capabilites and a large context window of 
+128k tokens, making it an ideal candidate for text based classification tasks.
+The model has intended use for research purposes as its been released under the Apache 2.0 license, 
+in both pre-trained and instruction-tuned forms. For the investigation, the quantised Mistral-Nemo-Intruct-2407-GGUF model was chosen 
+due to limited compute and storage resources.
+\subsubsection{3.1.2 Semantic Class and Attribute Descriptions}
+To facilitate natural language inference, semantic class and attribute descriptions are necessary for the model to identify the relationship between input features and unseen output classes. The level of detail and accuracy of the semantic descriptions directly impacts the performance of the zero-shot classifier. The semantic class description should ideally be expressed in terms of the features. The nature of the classification task determines the level of domain knowledge required to construct a successful association between features and labels. 
+
+\subsubsection{3.1.3 Classification Process}
+This stage composes of two main parts that enables the LLM to perform classification tasks: prompt engineering and output formatting.
+Input prompts are constructed using a text representation of the input data, instructions to carry out the classification task, and the available output classes with their corresponding semantic descriptions.
+Output formatting is enforced using the Backus-Naur Form(BNF), restricting the output of the model to a specified format. Lastly, an additional normalization is performed to the output of the LLM to handle edge cases such as hallucenation, where the output format does not abide by the BNF. 
+
+\subsection{3.2 Implementation}
+In this section, we first describe the open-source cybersecurity threat data sets we collected and methods used to process the datasets for the investigation. We then showcase the development environment used to conduct the experiment as well as describing implementation details and metrics used to evaluate the performance of the classification task. 
+
+\subsubsection{3.2.1 Datasets}
+The first experiment was conducted using the Enron dataset, consisting of regular and phishing emails, popularly used in studies conducted for email spam filters. A labelled subset of this dataset was used to measure the models capability of classifying "spam" and "ham" emails. 
+
+The Twitter Spam dataset was used in the second experiment, which consists of statistics about the tweet and the user who posted it. These features are used to classify the tweet as "spammer" or "non-Spammer".
+
+\vspace{10pt} % Adjust the value as needed
+\begin{table}[!h]
+  \caption{Features Descriptions from Spam Tweet Dataset\cite{chen6MillionSpam2015,chenTwitterSpam}}
+  \label{tab:features}
+  \begin{center}       
+    \begin{tabular}{p{0.35\columnwidth} p{0.55\columnwidth}}
+      \textbf{Feature Set} & \textbf{Description}                                                                            \\ \hline
+      account\_age         & The age (days) of an account since its creation until the time of sending the most recent tweet \\ \hline
+      no\_follower         & The number of followers of this Twitter user                                                    \\ \hline
+      no\_following        & The number of followings/friends of this Twitter user                                           \\ \hline
+      no\_userfavourites   & The number of favourites this Twitter user received                                             \\ \hline
+      no\_lists            & The number of lists this Twitter user added                                                     \\ \hline
+      no\_tweets           & The number of tweets this Twitter user sent                                                     \\ \hline
+      no\_retweets         & The number of retweets this tweet                                                               \\ \hline
+      no\_hashtag          & The number of hashtags included in this tweet                                                   \\ \hline
+      no\_usermention      & The number of user mentions included in this tweet                                              \\ \hline
+      no\_urls             & The number of URLs included in this tweet                                                       \\ \hline
+      no\_char             & The number of characters in this tweet                                                          \\ \hline
+      no\_digits           & The number of digits in this tweet                                                              \\ 
+    \end{tabular}
+  \end{center}
+\end{table}
+
+\subsubsection{3.2.2 Data Preparation}
+We obtained a labelled subset of the Enron dataset which did not need processing or preparation.
+The Twitter Spam dataset included labels and a quantitative feature representation, which required transformation into a text format to be handled by the LLM. The transformation function, used the numeric attributes to generate a paragraph describing the tweet and the responsible user using natural language. 
+
+\subsubsection{3.2.3 Experimental Setup}
+We conducted the experiments using Jupyter notebooks in the Google Colab cloud environment. Additional compute resources were required to run the model with the required context length determined by the input prompts. The A100 GPU from NVIDIA was used to execute the models and classification tasks. The datasets were stored and accessed using Google Drive. The LLM was downloaded using the Hugging Face command line interface and loaded using the llama-cpp library and the corresponding llama-cpp-python bindings. The datasets were handled using the Python pandas library. Performance metrics were calculated using the Python scikit-learn library. 
+\subsubsection{3.2.4 Performance Evaluation}
+The following evaluation metrics were used to assess the performance of the model for the two datasets:
+
+\section*{Evaluation Metrics}
+
+\subsection*{Accuracy}
+
+\begin{equation*}
+  \text{Accuracy} = \frac{TP + TN}{TP + TN + FP + FN}
+\end{equation*}
+
+where:
+
+\begin{itemize}
+  \item TP: True Positives
+  \item TN: True Negatives
+  \item FP: False Positives
+  \item FN: False Negatives
+\end{itemize}
+
+\subsection*{Precision}
+
+\begin{equation*}
+  \text{Precision} = \frac{TP}{TP + FP}
+\end{equation*}
+
+\subsection*{Recall}
+
+\begin{equation*}
+  \text{Recall} = \frac{TP}{TP + FN}
+\end{equation*}
+
+\subsection*{F-Score}
+
+\begin{equation*}
+  \text{F-Score} = 2 \times \frac{\text{Precision} \times \text{Recall}}{\text{Precision} + \text{Recall}}
+\end{equation*}
+
+These metrics are extracted from a confussion matrix, which provides information about actual and predicted classifications performed by a classification system \cite{dengImprovedMethodConstruct2016}. The accuracy metric measures the proportion of correctly classified instances, while the precision metric measures the proportion of correctly classified positive instances \cite{dengImprovedMethodConstruct2016}. The recall metric measures the proportion of actual positive instances that were correctly classified \cite{dengImprovedMethodConstruct2016}, and the F-Score metric is the harmonic mean of precision and recall \cite{dengImprovedMethodConstruct2016}.
+
+\section{4 Results and Discussion}
+\subsection*{4.1 Results}
+Figures \ref{table:accuracy}, \ref{table:precission}, \ref{table:recall} and \ref{table:f1-score} present our results in terms of the previously defined evaluation metrics for the Twitter Spam and Enron Datasets using our Zero-Shot Learning (ZSL) model.
+
+During our experiments the model achieved an accuracy of 92.03\%, a precision of 87.96\%, a recall of 97.81\% and an F1-score of 92.62\% on the Enron dataset (33k size). In the case of the Twitter Spam dataset (10k size), the model achieved an accuracy of 57.07\%, a precision of 53.94\%, a recall of 96.72\% and an F1-score of 69.25\%.
+
+% Accuracy table
+\begin{table}[h]
+  \centering
+  \begin{tabular}{|l|c|c|c|c|c|}
+    \hline
+    Model                                     & Dataset  & Accuracy \\
+    \hline
+    ZSL                                       & Enron    & 92.03\%  \\
+    \hline
+    DT\cite{shaukatCyberThreatDetection2020}  & Enron    & 96.00\%  \\
+    \hline
+    ZSL                                       & Tw. Spam & 57.07\%  \\
+    \hline
+    SVM\cite{shaukatCyberThreatDetection2020} & Tw. Spam & 95.20\%  \\
+    \hline
+  \end{tabular}
+  \caption{Accuracy results achieved by zero-shot classification models compared to supervised baselines on the Twitter Spam and Enron datasets.}
+  \label{table:accuracy}
+\end{table}
+% Precission table
+\begin{table}[h]
+  \centering
+  \begin{tabular}{|l|c|c|c|c|c|}
+    \hline
+    Model                                     & Dataset  & Precision \\
+    \hline
+    ZSL                                       & Enron    & 87.96\%   \\
+    \hline
+    DT\cite{shaukatCyberThreatDetection2020}  & Enron    & 98.00\%   \\
+    \hline
+    ZSL                                       & Tw. Spam & 53.94\%   \\
+    \hline
+    SVM\cite{shaukatCyberThreatDetection2020} & Tw. Spam & NaN       \\
+    \hline
+  \end{tabular}
+  \caption{Precission performance achieved by zero-shot classification models compared to supervised baselines on the Twitter Spam and Enron datasets.}
+  \label{table:precission}
+\end{table}
+% Recall table
+\begin{table}[h]
+  \centering
+  \begin{tabular}{|l|c|c|c|c|c|}
+    \hline
+    Model                                     & Dataset  & Recall  \\
+    \hline
+    ZSL                                       & Enron    & 97.81\% \\
+    \hline
+    DT\cite{shaukatCyberThreatDetection2020}  & Enron    & 94.00\% \\
+    \hline
+    ZSL                                       & Tw. Spam & 96.72\% \\
+    \hline
+    SVM\cite{shaukatCyberThreatDetection2020} & Tw. Spam & 93.60\% \\
+    \hline
+  \end{tabular}
+  \caption{Recall metrics achieved by zero-shot classification models compared to supervised baselines on the Twitter Spam and Enron datasets.}
+  \label{table:recall}
+\end{table}
+% F1-Score table
+\begin{table}[h]
+  \centering
+  \begin{tabular}{|l|c|c|c|c|c|}
+    \hline
+    Model                                     & Dataset  & F1-Score \\
+    \hline
+    ZSL                                       & Enron    & 92.62\%  \\
+    \hline
+    DT\cite{shaukatCyberThreatDetection2020}  & Enron    & 95.96\%  \\
+    \hline
+    ZSL                                       & Tw. Spam & 69.25\%  \\
+    \hline
+    SVM\cite{shaukatCyberThreatDetection2020} & Tw. Spam & NaN      \\
+    \hline
+  \end{tabular}
+  \caption{F1-Score achieved by zero-shot classification models compared to supervised baselines on the Twitter Spam and Enron datasets.}
+  \label{table:f1-score}
+\end{table}
+
+\subsection*{4.2 Discussion}
+\subsection*{4.2.1 Comparison of Zero-Shot Classifier and Supervised Learning Models}
+% Accuracy comparison for both datasets
+Comparing the obtained results to previous work with supervised machine learning methods is crucial to understand the benefits and drawbacks from using zero shot learners to perform these kind of tasks. For instance, while our model's accuracy in the case of the Enron dataset is around 4\% less than that of Decision Tree (DT) model from \cite{shaukatCyberThreatDetection2020}, it is important to acknowledge that our model was not explicitly trained neither on these datasets nor specifically for this classification task. These results showcase the potential of zero-shot learning for efficient and adaptable threat detection in the absence of training datasets or overall training. On the other hand, the model's accuracy on the Twitter spam dataset was significantly lower than that of the Support Vector Machine (SVM) model from \cite{shaukatCyberThreatDetection2020}, which may make it not viable as a reliable classifier for unsupervised automated spam classification tasks in this case.
+
+% Precission comparison for both datasets
+In a similar way, the precision in the case of the Twitter dataset was also quite low which may also suggest the available features or the provided input to the model may not be providing enough information so it can perform better. The role of the transformed input data feed to the model and the classes semantic description may be crucial to improve the model's performance in this case. At the same time, the precision in the case of the Enron dataset was quite high, which may suggest that the model is able to identify the spam emails with a high degree of confidence. Also, just like with accuracy, the supervised learning models from \cite{shaukatCyberThreatDetection2020} outperformed our model in terms of precision.
+% Recall comparison for both datasets
+In terms of recall, the model performed quite well in both datasets, with a recall of 0.9781 for the Enron dataset and 0.9672 for the Twitter Spam dataset. This may suggest that the model is able to identify most of the spam emails in the Enron dataset and most of the spam tweets in the Twitter Spam dataset. Notoriously, the model's recall in both datasets was higher than that of the SVM model and DT model from \cite{shaukatCyberThreatDetection2020}, which may suggest that the model is able to identify most of the spam emails and tweets in the dataset, but it may not be able to do so with a high degree of confidence in regards of false positives.
+
+% F1-score comparison for both datasets
+The F1-score provides a balance between precision and recall, and in this case, the model achieved a score of 0.9262 for the Enron dataset and 0.6925 for the Twitter Spam dataset. This may suggest that the model is able to identify most of the spam emails in the Enron dataset and most of the spam tweets in the Twitter spam dataset, but it may not be able to do so with a high degree of confidence in the latter case.
+
+\subsection*{4.2.2 Performance Variation Of The Zero Shot Classifier Across Datasets}
+
+The ZSL model was able to achieve high accuracy and F1-score on the Enron dataset, demonstrating its effectiveness in identifying email spam. However, the model's performance on the Twitter Spam dataset was lower, indicating the need for further optimization and tuning to handle more complex data. Discrepancies in performance between both classification tasks may be attributed to the differences in dataset size, complexity, available features and generated semantic descriptions for the classes and input data. The input data employed for the Enron dataset included the email messages in text format as well as a description of spam and non-spam email. On the other hand, the Twitter Spam was composed of only numeric features which are then passed to the model as a text description of the tweet and the user who posted it.
+
+We theorize performance variation across datasets may be related to the nature of the dataset and the features provided to the model. The Enron dataset is composed of text data, which is the natural input format for the LLM, while the Twitter Spam dataset is composed of numeric features that require transformation into text format. The transformation process may have introduced noise or reduced the quality of the input data, leading to lower performance on the Twitter spam dataset. Future work could be done on improving the feature representation and semantic descriptions for the Twitter Spam dataset to enhance the model's performance.
+
+At the same time, spam email has a consistent predefined set of characteristics that often provides enough context to classify the message itself as spam or not. Twitter spam on the other hand is more dynamic and may require a more complex set of features to be able to classify it correctly. Including the tweet content itself as a feature may provide the model with more context to make a better classification.
+
+Fine tuning both the semantic description of classes and input data may be crucial to improve the model's performance on the Twitter Spam dataset. The model's ability to generalize to new and unseen threats without retraining makes it a promising approach for cybersecurity threat identification. Future work could focus on enhancing the semantic descriptions and input data representation to improve the model's performance on the Twitter Spam dataset. Specific domain knowledge may be required to construct accurate semantic descriptions for the classes and input data, which could be obtained through collaboration with cybersecurity experts.
+
+\subsection*{4.2.3 The Role of Zero Shot Learning in Cybersecurity Threat Identification}
+% Limitations
+As it was observed in the results, the model's performance on the Twitter spam dataset was significantly lower than that of the Enron dataset. The lack of detailed semantic descriptions for the Twitter spam dataset may have contributed to the lower performance observed in this case. The model's reliance on accurate and detailed semantic descriptions highlights the importance of domain knowledge and expertise in constructing effective class descriptions for cybersecurity threat identification. Future work could focus on enhancing the semantic descriptions for the Twitter spam dataset to improve the model's performance.
+
+% Efficiency
+Nonetheless, the significant reduction in computational resources and time expenditure compared to supervised learning models demonstrates the efficiency of the zero-shot learning approach. The model's rapid deployment with minimal setup and configuration requirements makes it an attractive option for cybersecurity threat identification tasks. The reduced reliance on large, labeled datasets, which can be costly and time-consuming to acquire, further enhances the model's efficiency and scalability.
+
+% Adaptability
+Furthermore, the model's inherent ability to generalize and adapt to new classification tasks at a rapid rate by adjusting the semantic descriptions or auxliary information necessary to describe the output classes in comparison to a long retraining process or waiting for a sufficient amount of collected and labelled data to become available highlights the learning method's adaptability to the evolving cybersecurity landscape. The dynamic response to the evolving cybersecurity landscape positions the model as a promising solution for addressing the challenges of threat classification.
+
+% PoC Pontential Capabilities
+As a proof of concept, the presented solution demonstrates the feasibility of zero-shot learning for cybersecurity applications. The classifier provides a foundation for future research and development in this area, with the potential to address the challenges of threat classification using LLMs, natural language processing and semantic inference. This implementation highlights the potential of LLMs to enhance cybersecurity threat identification and classification.
+
+\section{5 Conclusion and Future Work}
+\label{conclusion}
+In this study, we aimed to investigate the role zero-shot classification has in OSINT for cybersecurity threat identification. 
+In this study, we aimed to investigate the role zero-shot classification has in OSINT for cybersecurity threat identification. 
+The dynamic nature of cyber threats poses challenges for supervised ML methods to remain as efficient tools for threat identification due to their need for large, labelled training datasets and the amount of time and resources needed for learning these. 
+
+Zero-shot classification has emerged as an alternative method for scenarios where access to labelled datasets is limited and the nature of the output classes is dynamic.
+The combination of zero-shot classification and open-source information show potential to be an adaptable and efficient method to detect and categorize novel threats without extensive training. 
+
+In our experiments we used the Mistral 12B LLM as a zero-shot learner, an engineered attribute and output class semantic space and custom output formatting to perform spam email and tweet classification. 
+We compared the performance, ease of implementation and adaptability of our zero-shot learner to supervised ML methods trained for the same cybersecurity threat identification tasks. 
+
+Our solution results provided an accuracy of 92.03\%, a precision of 87.96\%, a recall of 97.81\% and an F1-score of 92.62\% for the Enron email dataset (33k size). In the case of the Twitter Spam dataset (10k size), the model achieved an accuracy of 57.07\%, a precision of 53.94\%, a recall of 96.72\% and an F1-score of 69.25\%.
+The performance metrics of the ZSL were less than the supervised ML models for both classification tasks, this was expected considering the domain knowledge available for the semantic descriptions and the nature of supervised learning methods. 
+However, the quick and resource efficient implementation of the zero-shot classifier and the adaptability of its predictions via engineered semantic attribute and output class descriptions, showcase its potential as a more efficient and adaptable alternative classifying method. 
+The experiment showcases the dependancy between the zero-shot classifier's performance and the quality of domain knowledge that is used as auxiliary information for learning. 
+
+Our research was limited to only two cybersecurity threat identification tasks. The quality of our engineered semantic space was limited by our domain knowledge of spam emails and tweets. 
+Our zero-shot classification method was constrained by the available compute resources on Google Colab, which is an interactive programming environment not intended for timely background operations. 
+Our zero-shot classification method was constrained by the available compute resources on Google Colab, which is an interactive programming environment not intended for timely background operations. 
+
+Future work could be done with more diverse and larger datasets, more complex cybersecurity threat identification tasks and experiments performed with a variety of detailed semantic descriptions for the classes and input data. Obtaining semantic descriptions based on state-of-the-art cybersecurity domain knowledge could potentially achieve great improvements in terms of accuracy in cybersecurity threat identification tasks.
+
+Other types of auxiliary information such as word embeddings, knowledge graphs or other types of LLMs could be investigated to enhance the zero-shot classifier's performance or create new ones with different purposes. Developing a framework for zero-shot classification using LLMs for cybersecurity threat identification could be a potential direction for future research.
+Other types of auxiliary information such as word embeddings, knowledge graphs or other types of LLMs could be investigated to enhance the zero-shot classifier's performance or create new ones with different purposes. Developing a framework for zero-shot classification using LLMs for cybersecurity threat identification could be a potential direction for future research.
+
+On the other hand, it's possible to implement almost real-time applications using streaming data and the zero-shot classifier to identify and classify threats as they appear. The zero-shot classifier could also be tested within an ensemble method to increase the adaptability and accuracy of the classification tasks for emerging threats, ones that supervised learning models are not able to learn or identify efficiently.
+On the other hand, it's possible to implement almost real-time applications using streaming data and the zero-shot classifier to identify and classify threats as they appear. The zero-shot classifier could also be tested within an ensemble method to increase the adaptability and accuracy of the classification tasks for emerging threats, ones that supervised learning models are not able to learn or identify efficiently.
+
+In conclusion, the zero-shot classifier implemented in this research showcases the potential of zero-shot classification in cybersecurity threat identification under real world circumstances. The results achieved in the two classification tasks serve as a proof of concept of how implementing zero-shot classification using an LLM and open-source datasets can be used as an efficient and adaptable method for cybersecurity threat identification in dynamic scenarios where diverse and new challenges may appear.
+
+
+\appendix
+\section{Appendix}
+
+%*Add link to notebooks for Enron
+\subsection{Enron Experiment}
+\subsubsection{Enron Labeled Dataset}
+\begin{itemize}
+  \item \href{https://github.com/MWiechmann/enron_spam_data}{Enron Email Labeled Dataset}
+\end{itemize}
+\subsubsection{Enron Dataset Jupyter Notebooks}
+\begin{itemize}
+  \item \href{https://colab.research.google.com/drive/1XL6HxcqCgSeBpjBns8kCpp1qzrpnC4o5?usp=sharing}{Enron Email Dataset Processing Batch 1}
+  \item \href{https://colab.research.google.com/drive/13jZMi0vlYfhMoJilG7f_2y-g0SwO3ood?usp=sharing}{Enron Email Dataset Processing Batch 2}
+  \item \href{https://colab.research.google.com/drive/1Uv7xBBqldGZIh9R3H4A3S0GSjbjELZrt?usp=sharing}{Enron Email Dataset Processing Batch 3}
+  \item \href{https://colab.research.google.com/drive/1xUwfLDlx5JAZ6lGt1nFKmlBWczD0cFsI?usp=sharing}{Enron Email Dataset Processing Batch 4}
+\end{itemize}
+
+%*Add link to notebook for Spam Tweet
+\subsection{Twitter Experiment}
+\subsubsection{Twitter Labeled Dataset}
+\begin{itemize}
+  \item \href{https://nsclab.org/nsclab/resources/#spam}{Twitter Spam Dataset}
+\end{itemize}
+\subsubsection{Twitter Dataset Jupyter Notebooks}
+\begin{itemize}
+  \item \href{https://colab.research.google.com/drive/1FPIS1mRueLZJ5r3opMw56mtnP2Ivpb48?usp=sharing}{Twitter Spam Dataset Processing}
+\end{itemize}
+
+
+
+\section*{Author Contributions}
+
+K.I. led the study by writting the Abstract, Introduction, Methodology and did the main research of previous work in adjacent study areas, greatly contributing as well to the Literature Review and Conclusion. J.M. implemented, performed and optimized the experiments and collected and analized the data as well as writing the Results and Discussion section and collaborating with K.I. in the Conclusion section. D.R contributed with his work to the Literature Review section.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Reference Preparation
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Acknowledgments}
+We used ChatGPT to generate the semantic descriptions for the Spam Tweet Experiment and the official documentation of the Mistral 12B LLM from hugging face and the llama-cpp-python library to implement the Zero-Shot Classifier.
+
+% To start a new column (but not a new page) and help balance the last-page
+% column length use \vfill\pagebreak.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Bibliography
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\small
+\nocite{*}
+\printbibliography
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Biography
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{biography}
+  Katerina, Juan and David are students at SRH Berlin University
+  of Applied Sciences studying towards a Master's degree in 
+  Computer Science focused on Artificial Intelligence and Big Data.
+\end{biography}
+
+\end{document}
