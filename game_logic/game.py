@@ -29,9 +29,13 @@ class Game:
         self.map_image = None
         self.running = False
         self.game_over = False
+        self.win = False
+        self.scenario_index = 0
+        self.max_scenarios = 15  # Total number of scenarios
+        self.scenarios = []  # Store pre-generated scenarios
 
         self.reuse_player_image = False
-        self.reuse_map_image = False
+        self.reuse_map_image = True #Use map.png image to reduce waiting time
 
         self.scenario_prompt, self.options = None, None
         self.loading_character = False
@@ -40,6 +44,21 @@ class Game:
         self.image_generation_tread = None
         self.scenario_generation_tread = None
 
+        self.generate_scenarios()
+    
+    def generate_scenarios(self):
+        """Pre-generate 15 scenarios before the game starts."""
+        for _ in range(self.max_scenarios):
+            scenario, options = generate_scenario(
+                self.game_state.economy,
+                self.game_state.military,
+                self.game_state.public_appeal,
+                self.game_state.diplomacy,
+                False,
+            )
+            self.scenarios.append((scenario, options))
+        self.scenario_prompt, self.options = self.scenarios[0]
+    
     def _generate_images_thread(
         self, player_description, map_description, reuse_player_image, reuse_map_image
     ):
@@ -117,13 +136,13 @@ class Game:
         self.scenario_generation_tread.start()
 
     def _update_scenario_thread(self):
-        self.scenario_prompt, self.options = generate_scenario(
-            self.game_state.economy,
-            self.game_state.military,
-            self.game_state.public_appeal,
-            self.game_state.diplomacy,
-            False,
-        )
+        """Moves to the next scenario or ends the game if necessary."""
+        if self.scenario_index < self.max_scenarios - 1:
+            self.scenario_index += 1
+            self.scenario_prompt, self.options = self.scenarios[self.scenario_index]
+        else:
+            self.win = True  # Win condition met
+            self.game_over = True
         self.loading_scenario = False
 
     def draw_loading_screen(self):
@@ -280,25 +299,16 @@ class Game:
                         self.update_scenario()
 
     def draw_game_over_screen(self):
-        print("Drawing game over screen")
-        # Game Over Screen
+        """Handles game over screen for both loss and win cases."""
         self.screen.fill((0, 0, 0))
-        self.draw_text_with_border(
-            self.screen,
-            "Game Over! Your rule has ended.",
-            self.font,
-            (255, 0, 0),
-            250,
-            250,
-        )
-        self.draw_text_with_border(
-            self.screen,
-            "Press R to restart or Q to quit.",
-            self.font,
-            (255, 255, 255),
-            220,
-            300,
-        )
+        # First message (Game Over / Win message)
+        message = "You won! Your reign was successful." if self.win else "Game Over! Your rule has ended."
+        text_surface1 = self.font.render(message, True, (255, 0, 0))  # Red text
+        self.screen.blit(text_surface1, (250, 250))  
+
+        # Second message (Restart/Quit prompt)
+        text_surface2 = self.font.render("Press R to restart or Q to quit.", True, (255, 255, 255))  # White text
+        self.screen.blit(text_surface2, (250, 300))  # Position it below the first message
         pygame.display.flip()
 
         for event in pygame.event.get():

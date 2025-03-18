@@ -4,7 +4,7 @@ Handle player stats and choices
 
 
 class GameState:
-    def __init__(self, economy=50, military=50, public_appeal=50, diplomacy=50):
+    def __init__(self, economy=30, military=30, public_appeal=30, diplomacy=30):
         self.economy = economy
         self.military = military
         self.public_appeal = public_appeal
