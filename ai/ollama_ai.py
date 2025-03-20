@@ -89,11 +89,11 @@ def generate_scenario(
     faced by a medieval ruler. The scenario must:
     - Be relevant to the medieval setting of Eldoria.
     - Involve one or more aspects of the kingdom's state (economy, military, public appeal, diplomacy).
-    - Be concise, no more than 50 words.
+    - Be concise, no more than 15 words.
     - Take into account the recent events listed above.
 
     Additionally, provide three options for the ruler to choose from. Each option must:
-    - Be no more than 14 words.
+    - Be no more than 10 words.
     - Clearly describe an action or decision the ruler can take.
     - Include logical effects on the kingdom's stats (economy, military, public appeal, diplomacy).
     - Avoid vague or unrealistic actions.

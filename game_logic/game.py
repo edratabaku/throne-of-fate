@@ -16,8 +16,8 @@ class Game:
         pygame.init()
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         pygame.display.set_caption("Throne of Fate")
-        self.font = pygame.font.SysFont("Arial", 24)
-        self.option_font = pygame.font.SysFont("Arial", 22)
+        self.font = pygame.font.SysFont("Arial", 22)
+        self.option_font = pygame.font.SysFont("Arial", 20)
         self.input_box = pygame.Rect(150, 250, 500, 40)
         self.input_text = ""
         self.active_input = False
@@ -302,8 +302,13 @@ class Game:
         """Handles game over screen for both loss and win cases."""
         self.screen.fill((0, 0, 0))
         # First message (Game Over / Win message)
-        message = "You won! Your reign was successful." if self.win else "Game Over! Your rule has ended."
-        text_surface1 = self.font.render(message, True, (255, 0, 0))  # Red text
+        if self.win:
+            message = "You won! Your reign was successful."
+            color = (0, 255, 0)
+        else:
+            message =  "Game Over! Your rule has ended."
+            color = (255, 0, 0)
+        text_surface1 = self.font.render(message, True, color) 
         self.screen.blit(text_surface1, (250, 250))  
 
         # Second message (Restart/Quit prompt)
@@ -317,7 +322,7 @@ class Game:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_r:
                     self.game_state = GameState()
-                    self.scenario_prompt, self.options = self.update_scenario()
+                    self.update_scenario()
                     self.game_over = False
                 elif event.key == pygame.K_q:
                     self.running = False
