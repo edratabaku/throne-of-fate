@@ -4,8 +4,7 @@ Image generation using StableDiffusion
 
 from diffusers import StableDiffusionPipeline
 import torch
-from PIL import Image
-from config import STABLE_DIFFUSION_MODEL
+from config import IMAGE_GENERATION_MODEL
 
 # Determine the appropriate device, CUDA for Nvidia GPUs, MPS for Apple M1 and CPU for others
 if torch.cuda.is_available():
@@ -16,7 +15,7 @@ else:
     device = "cpu"
 
 pipe = StableDiffusionPipeline.from_pretrained(
-    STABLE_DIFFUSION_MODEL, torch_dtype=torch.float32, variant="fp16"
+    IMAGE_GENERATION_MODEL, torch_dtype=torch.float32, variant="fp16"
 )
 pipe.to(device)
 if device == "mps":
