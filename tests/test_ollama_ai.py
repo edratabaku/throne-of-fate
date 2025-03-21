@@ -1,7 +1,13 @@
-import unittest
+import unittest, os, sys
 from unittest.mock import patch, mock_open
-from ai.ollama_ai import generate_scenario
 
+
+# Add the parent directory to sys.path
+root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(root_dir)
+
+
+from ai.ollama_ai import generate_scenario
 
 class TestGenerateScenario(unittest.TestCase):
     def test_generate_scenario_with_valid_inputs(self):
@@ -20,7 +26,7 @@ class TestGenerateScenario(unittest.TestCase):
                 ]
             }
             """
-            scenario, options = generate_scenario(economy, military, public_appeal, diplomacy, previous_events)
+            scenario, options = generate_scenario(economy, military, public_appeal, diplomacy, previous_events, False)
             self.assertEqual(scenario, "A neighboring kingdom demands tribute.")
             self.assertEqual(len(options), 3)
 
@@ -39,7 +45,7 @@ class TestGenerateScenario(unittest.TestCase):
                 ]
             }
             """
-            scenario, options = generate_scenario(economy, military, public_appeal, diplomacy)
+            scenario, options = generate_scenario(economy, military, public_appeal, diplomacy, None, False)
             self.assertEqual(scenario, "A drought threatens the kingdom's food supply.")
             self.assertEqual(len(options), 3)
 
@@ -47,7 +53,7 @@ class TestGenerateScenario(unittest.TestCase):
     def test_generate_scenario_with_load_from_file(self, mock_file):
         """Test generate_scenario with load_from_file parameter."""
         economy, military, public_appeal, diplomacy = 50, 60, 70, 80
-        scenario, options = generate_scenario(economy, military, public_appeal, diplomacy, load_from_file="assets/scenario.json")
+        scenario, options = generate_scenario(economy, military, public_appeal, diplomacy, load_from_file=mock_file)
         self.assertEqual(scenario, "A test scenario.")
         self.assertEqual(options, [])
 
@@ -56,7 +62,7 @@ class TestGenerateScenario(unittest.TestCase):
         economy, military, public_appeal, diplomacy = 50, 60, 70, 80
         
         with patch("ai.ollama_ai.ollama.generate", side_effect=Exception("AI error")):
-            scenario, options = generate_scenario(economy, military, public_appeal, diplomacy)
+            scenario, options = generate_scenario(economy, military, public_appeal, diplomacy, None, False)
             self.assertEqual(scenario, "A crisis emerges!")
             self.assertEqual(len(options), 3)
 
@@ -65,7 +71,7 @@ class TestGenerateScenario(unittest.TestCase):
         economy, military, public_appeal, diplomacy = 50, 50, 50, 50
         
         with patch("ai.ollama_ai.ollama.generate", side_effect=Exception("AI error")):
-            scenario, options = generate_scenario(economy, military, public_appeal, diplomacy, load_from_file=None)
+            scenario, options = generate_scenario(economy, military, public_appeal, diplomacy, None, False)
             self.assertEqual(scenario, "A crisis emerges!")
             self.assertEqual(len(options), 3)
 
@@ -85,7 +91,7 @@ class TestGenerateScenario(unittest.TestCase):
                 ]
             }
             """
-            scenario, options = generate_scenario(economy, military, public_appeal, diplomacy, previous_events)
+            scenario, options = generate_scenario(economy, military, public_appeal, diplomacy, previous_events, False)
             self.assertEqual(scenario, "The kingdom faces a dire threat from an invading army.")
             self.assertEqual(len(options), 3)
 
@@ -93,7 +99,7 @@ class TestGenerateScenario(unittest.TestCase):
     def test_generate_scenario_with_corrupted_file(self, mock_file):
         """Test generate_scenario with a corrupted file."""
         economy, military, public_appeal, diplomacy = 50, 50, 50, 50
-        scenario, options = generate_scenario(economy, military, public_appeal, diplomacy, load_from_file="assets/scenario.json")
+        scenario, options = generate_scenario(economy, military, public_appeal, diplomacy, load_from_file=mock_file)
         self.assertEqual(scenario, "A crisis emerges!")
         self.assertEqual(len(options), 3)
 
@@ -108,7 +114,7 @@ class TestGenerateScenario(unittest.TestCase):
                 "options": []
             }
             """
-            scenario, options = generate_scenario(economy, military, public_appeal, diplomacy)
+            scenario, options = generate_scenario(economy, military, public_appeal, diplomacy, None, False)
             self.assertEqual(scenario, "A neighboring kingdom offers an alliance.")
             self.assertEqual(len(options), 0)
 
@@ -124,7 +130,7 @@ class TestGenerateScenario(unittest.TestCase):
                 ]
             }
             """
-            scenario, options = generate_scenario(economy, military, public_appeal, diplomacy)
+            scenario, options = generate_scenario(economy, military, public_appeal, diplomacy, None, False)
             self.assertEqual(scenario, "A crisis emerges!")
             self.assertEqual(len(options), 3)
 
@@ -144,7 +150,7 @@ class TestGenerateScenario(unittest.TestCase):
                 ]
             }
             """
-            scenario, options = generate_scenario(economy, military, public_appeal, diplomacy, previous_events)
+            scenario, options = generate_scenario(economy, military, public_appeal, diplomacy, previous_events, False)
             self.assertEqual(scenario, "The kingdom faces unrest due to past decisions.")
             self.assertEqual(len(options), 3)
 

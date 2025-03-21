@@ -6,6 +6,7 @@ import pygame
 from ai.ollama_ai import generate_scenario
 from ai.stable_diffusion import generate_image
 from game_logic.game_state import GameState
+import json, os
 import threading
 
 from config import SCREEN_HEIGHT, SCREEN_WIDTH
@@ -44,20 +45,43 @@ class Game:
         self.image_generation_tread = None
         self.scenario_generation_tread = None
 
-        self.generate_scenarios()
+        # self.generate_scenarios()
     
-    def generate_scenarios(self):
+    def generate_scenarios(self, use_existing=True):
+        self.loading_scenario = True
+        self.scenario_generation_tread = threading.Thread(
+            target=self._generate_scenarios_thread, args=(use_existing,)
+        )
+        self.scenario_generation_tread.start()
+    
+    def _generate_scenarios_thread(self, use_existing=True):
         """Pre-generate 15 scenarios before the game starts."""
-        for _ in range(self.max_scenarios):
-            scenario, options = generate_scenario(
-                self.game_state.economy,
-                self.game_state.military,
-                self.game_state.public_appeal,
-                self.game_state.diplomacy,
-                False,
-            )
-            self.scenarios.append((scenario, options))
-        self.scenario_prompt, self.options = self.scenarios[0]
+        file_path = "assets/scenarios.json"
+        if os.path.exists(file_path) and use_existing:
+            with open(file_path, "r") as f:
+                try:
+                    self.scenarios = json.load(f)
+                    self.scenario_prompt, self.options = self.scenarios[0]
+                    self.loading_scenario = False
+                    return
+                except json.JSONDecodeError:
+                    self.scenarios = []
+        else:
+            self.scenarios = []
+            for _ in range(self.max_scenarios):
+                scenario, options = generate_scenario(
+                    self.game_state.economy,
+                    self.game_state.military,
+                    self.game_state.public_appeal,
+                    self.game_state.diplomacy,
+                    None,
+                    False,
+                )
+                self.scenarios.append((scenario, options))
+            with open("assets/scenarios.json", "w") as f:
+                json.dump(self.scenarios, f)
+            self.scenario_prompt, self.options = self.scenarios[0]
+            self.loading_scenario = False
     
     def _generate_images_thread(
         self, player_description, map_description, reuse_player_image, reuse_map_image
@@ -129,13 +153,6 @@ class Game:
         self.map_image_generation_thread.start()
 
     def update_scenario(self):
-        self.loading_scenario = True
-        self.scenario_generation_tread = threading.Thread(
-            target=self._update_scenario_thread
-        )
-        self.scenario_generation_tread.start()
-
-    def _update_scenario_thread(self):
         """Moves to the next scenario or ends the game if necessary."""
         if self.scenario_index < self.max_scenarios - 1:
             self.scenario_index += 1
@@ -144,6 +161,7 @@ class Game:
             self.win = True  # Win condition met
             self.game_over = True
         self.loading_scenario = False
+
 
     def draw_loading_screen(self):
         # print('Drawing loading screen')
@@ -225,7 +243,7 @@ class Game:
                         self.reuse_map_image,
                     )
                     # self.scenario_prompt, self.options = self.update_scenario()
-                    self.update_scenario()
+                    # self.update_scenario()
                     self.start_game = True
             if event.type == pygame.KEYDOWN and self.active_input:
                 if event.key == pygame.K_RETURN:
@@ -322,6 +340,7 @@ class Game:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_r:
                     self.game_state = GameState()
+                    self.scenario_index = 0
                     self.update_scenario()
                     self.game_over = False
                 elif event.key == pygame.K_q:
@@ -329,6 +348,7 @@ class Game:
 
     def run(self):
         self.running = True
+        self.generate_scenarios()
         while self.running:
             self.screen.fill((0, 0, 0))
             if not self.start_game:
